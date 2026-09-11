@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  password    String?
+  role        Role         @default(USER)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  invitations Invitation[]
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  title       String
+  groomName   String           @default("")
+  brideName   String           @default("")
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  layoutData  String           @default("{}")
+  isPublished Boolean          @default(false)
+  audioUrl    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  guestbook   GuestbookEntry[]
+  guests      Guest[]
+
+  @@index([slug])
+  @@index([userId])
+}
+
+model GuestbookEntry {
+  id               String   @id @default(cuid())
+  invitationId     String
+  invitation       Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  guestName        String
+  attendanceStatus String   @default("TENTATIVE")
+  message          String?
+  createdAt        DateTime @default(now())
+
+  @@index([invitationId])
+}
+
+model Guest {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String?
+  customNote   String?
+  isSent       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@index([invitationId])
+}
