@@ -28,7 +28,9 @@ import {
   ShieldCheck,
   LogOut,
   User as UserIcon,
+  Palette,
 } from "lucide-react";
+import { THEME_PRESETS } from "@/config/theme.config";
 import {
   createInvitation,
   deleteInvitation,
@@ -87,6 +89,8 @@ export default function DashboardClient({
     useState<InvitationItem | null>(null);
 
   // Form states - Create
+  const [creationMode, setCreationMode] = useState<"preset" | "blank">("preset");
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("quiet-luxury");
   const [groomName, setGroomName] = useState("");
   const [brideName, setBrideName] = useState("");
   const [title, setTitle] = useState("");
@@ -158,11 +162,13 @@ export default function DashboardClient({
     setIsSubmitting(true);
     try {
       const res = await createInvitation({
-        title: title || `The Wedding of ${groomName} & ${brideName}`,
+        title: title || `The Wedding of ${groomName || "Mempelai Pria"} & ${brideName || "Mempelai Wanita"}`,
         slug: finalSlug,
-        userId: "demo-user",
+        userId: currentUser?.id,
         groomName: groomName || "Mempelai Pria",
         brideName: brideName || "Mempelai Wanita",
+        templateType: creationMode,
+        presetId: selectedPresetId,
       });
 
       if (res.success && res.invitation) {
@@ -173,6 +179,8 @@ export default function DashboardClient({
         setBrideName("");
         setTitle("");
         setSlug("");
+        setCreationMode("preset");
+        setSelectedPresetId("quiet-luxury");
         // Redirect directly to editor
         router.push(`/editor/${res.invitation.id}`);
       } else {
@@ -364,9 +372,22 @@ export default function DashboardClient({
               </p>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs text-stone-600 self-start sm:self-auto">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Database Cloud: Neon PostgreSQL</span>
+            <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormError(null);
+                  setIsCreateOpen(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition-all shadow-sm active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Buat Undangan Baru</span>
+              </button>
+              <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-stone-100 border border-stone-200/80 text-xs text-stone-600">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Database Cloud: Neon PostgreSQL</span>
+              </div>
             </div>
           </div>
         </div>
@@ -633,109 +654,235 @@ export default function DashboardClient({
       {/* Modal: Buat Undangan Baru */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-stone-100 text-stone-800 flex items-center justify-center">
-                  <Plus className="w-4 h-4" />
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-5 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center shadow-xs">
+                  <Plus className="w-5 h-5" />
                 </div>
-                <h3 className="font-serif text-xl font-bold text-stone-900">
-                  Buat Undangan Baru
-                </h3>
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-stone-900 leading-tight">
+                    Buat Undangan Baru
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Pilih mulai dari awal atau gunakan tema siap pakai
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 shrink-0">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleCreate} className="space-y-5 overflow-y-auto pr-1">
+              {/* Pilihan Metode: Preset vs Blank */}
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
+                  1. Pilih Metode Pembuatan
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option: Preset Tema */}
+                  <button
+                    type="button"
+                    onClick={() => setCreationMode("preset")}
+                    className={`relative text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer ${
+                      creationMode === "preset"
+                        ? "border-stone-900 bg-stone-50/70 shadow-xs ring-1 ring-stone-900/10"
+                        : "border-stone-200 hover:border-stone-300 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+                        <Palette className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-900 text-white">
+                        Rekomendasi
+                      </span>
+                    </div>
+                    <div className="font-serif font-bold text-sm text-stone-900">
+                      Preset Tema Siap Pakai
+                    </div>
+                    <p className="text-[11px] text-stone-500 mt-1 leading-snug">
+                      Lengkap dengan blok Hero, Profil, Jadwal Acara, Countdown, Galeri, Amplop Digital & RSVP.
+                    </p>
+                  </button>
+
+                  {/* Option: Blank Canvas */}
+                  <button
+                    type="button"
+                    onClick={() => setCreationMode("blank")}
+                    className={`relative text-left p-3.5 rounded-xl border-2 transition-all cursor-pointer ${
+                      creationMode === "blank"
+                        ? "border-stone-900 bg-stone-50/70 shadow-xs ring-1 ring-stone-900/10"
+                        : "border-stone-200 hover:border-stone-300 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center">
+                        <Layers className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-200 text-stone-700">
+                        Dari Nol
+                      </span>
+                    </div>
+                    <div className="font-serif font-bold text-sm text-stone-900">
+                      Mulai dari Nol (Blank)
+                    </div>
+                    <p className="text-[11px] text-stone-500 mt-1 leading-snug">
+                      Kanvas kosong bersih tanpa blok bawaan. Susun bebas setiap komponen dengan drag-and-drop.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-selector: Pilihan Preset Tema (jika mode preset) */}
+              {creationMode === "preset" && (
+                <div className="bg-stone-50/90 rounded-xl p-3.5 border border-stone-200/80 space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
+                      Pilih Gaya &amp; Nuansa Warna
+                    </label>
+                    <span className="text-[11px] text-stone-400">
+                      Dapat diubah di editor
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {THEME_PRESETS.map((preset) => {
+                      const isSelected = selectedPresetId === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setSelectedPresetId(preset.id)}
+                          className={`flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-white border-stone-900 ring-1 ring-stone-900 shadow-2xs"
+                              : "bg-white/60 border-stone-200 hover:bg-white hover:border-stone-300"
+                          }`}
+                        >
+                          <div className="flex -space-x-1 shrink-0">
+                            <span
+                              className="w-5 h-5 rounded-full border border-white shadow-2xs"
+                              style={{ backgroundColor: preset.previewHeadingColor }}
+                            />
+                            <span
+                              className="w-5 h-5 rounded-full border border-white shadow-2xs"
+                              style={{ backgroundColor: preset.previewAccentColor }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="text-xs font-bold text-stone-900 truncate">
+                                {preset.name}
+                              </p>
+                              {isSelected && (
+                                <Check className="w-3.5 h-3.5 text-stone-900 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-[10px] text-stone-500 truncate">
+                              {preset.tagline}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Form Input Detail Mempelai & URL */}
+              <div className="space-y-3 pt-2 border-t border-stone-100">
+                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
+                  2. Informasi Mempelai &amp; Link Undangan
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-stone-700 mb-1">
+                      Nama Mempelai Pria *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={groomName}
+                      onChange={(e) => handleGroomChange(e.target.value)}
+                      placeholder="mis. Raden"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-stone-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-stone-700 mb-1">
+                      Nama Mempelai Wanita *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={brideName}
+                      onChange={(e) => handleBrideChange(e.target.value)}
+                      placeholder="mis. Kirana"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-stone-900"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">
-                    Nama Mempelai Pria *
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Judul Undangan
                   </label>
                   <input
                     type="text"
-                    required
-                    value={groomName}
-                    onChange={(e) => handleGroomChange(e.target.value)}
-                    placeholder="mis. Raden"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="The Wedding of Raden &amp; Kirana"
                     className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-stone-900"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">
-                    Nama Mempelai Wanita *
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Link / URL Slug Undangan *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={brideName}
-                    onChange={(e) => handleBrideChange(e.target.value)}
-                    placeholder="mis. Kirana"
-                    className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-stone-900"
-                  />
+                  <div className="flex items-center rounded-xl border border-stone-200 overflow-hidden focus-within:border-stone-900">
+                    <span className="bg-stone-50 px-3 py-2 text-xs text-stone-400 border-r border-stone-200">
+                      rabiku.my.id/
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      placeholder="raden-kirana"
+                      className="w-full px-3 py-2 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    Hanya huruf kecil, angka, dan tanda hubung (-).
+                  </p>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Judul Undangan
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="The Wedding of Raden &amp; Kirana"
-                  className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-stone-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Link / URL Slug Undangan *
-                </label>
-                <div className="flex items-center rounded-xl border border-stone-200 overflow-hidden focus-within:border-stone-900">
-                  <span className="bg-stone-50 px-3 py-2 text-xs text-stone-400 border-r border-stone-200">
-                    rabiku.my.id/
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="raden-kirana"
-                    className="w-full px-3 py-2 text-sm focus:outline-none"
-                  />
-                </div>
-                <p className="text-[11px] text-stone-400 mt-1">
-                  Hanya huruf kecil, angka, dan tanda hubung (-).
-                </p>
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2">
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-stone-100 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-medium text-stone-600 hover:bg-stone-50"
+                  className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-medium text-stone-600 hover:bg-stone-50 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>

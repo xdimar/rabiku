@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { THEME_PRESETS, defaultThemeConfig } from "@/config/theme.config";
 
 export type AttendanceStatus = "ATTENDING" | "NOT_ATTENDING" | "TENTATIVE";
 
@@ -157,6 +158,8 @@ export async function createInvitation(data: {
   userId?: string;
   groomName?: string;
   brideName?: string;
+  templateType?: "blank" | "preset";
+  presetId?: string;
 }) {
   try {
     let finalUserId = data.userId;
@@ -170,6 +173,208 @@ export async function createInvitation(data: {
       }
     }
 
+    const groom = data.groomName?.trim() || "Raden";
+    const bride = data.brideName?.trim() || "Kirana";
+
+    let layoutDataObj: unknown;
+
+    if (data.templateType === "blank") {
+      layoutDataObj = {
+        content: [],
+        root: {
+          props: {
+            themeConfig: defaultThemeConfig,
+          },
+        },
+      };
+    } else {
+      const selectedPreset =
+        THEME_PRESETS.find((p) => p.id === data.presetId) || THEME_PRESETS[0];
+
+      layoutDataObj = {
+        content: [
+          {
+            type: "CoverHero",
+            props: {
+              id: "cover-hero-1",
+              title: "The Wedding of",
+              groomName: groom,
+              brideName: bride,
+              weddingDate: "25 Oktober 2025",
+              locationBadge: "Jakarta, Indonesia",
+              coverImage:
+                "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+              showGuestBadge: true,
+              scrollButtonText: "Buka Undangan",
+            },
+          },
+          {
+            type: "CoupleProfile",
+            props: {
+              id: "couple-1",
+              sectionTitle: "Mempelai Berbahagia",
+              sectionSubtitle:
+                "Maha Suci Allah yang telah menciptakan makhluk-Nya berpasang-pasangan.",
+              groomName: groom,
+              groomFullName: `${groom} Pratama, S.T.`,
+              groomBio: "Putra pertama dari Bpk. Bambang & Ibu Sri Wahyuni",
+              groomPhoto:
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+              groomInstagram: "mempelai_pria",
+              brideName: bride,
+              brideFullName: `${bride} Anindya, S.Ked.`,
+              brideBio: "Putri kedua dari Bpk. Hartono & Ibu Ratna Sari",
+              bridePhoto:
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+              brideInstagram: "mempelai_wanita",
+            },
+          },
+          {
+            type: "CountdownTimer",
+            props: {
+              id: "countdown-1",
+              sectionTitle: "Menghitung Hari",
+              targetDate: "2025-10-25T08:00:00",
+              showDays: true,
+              showHours: true,
+              showMinutes: true,
+              showSeconds: true,
+            },
+          },
+          {
+            type: "EventSchedule",
+            props: {
+              id: "events-1",
+              sectionTitle: "Agenda Acara",
+              events: [
+                {
+                  eventName: "Akad Nikah",
+                  date: "Sabtu, 25 Oktober 2025",
+                  time: "08:00 - 10:00 WIB",
+                  venueName: "Masjid Agung Sunda Kelapa",
+                  address:
+                    "Jl. Taman Sunda Kelapa No.16, Menteng, Jakarta Pusat",
+                  googleMapsUrl: "https://maps.google.com",
+                  icon: "ring",
+                },
+                {
+                  eventName: "Resepsi Pernikahan",
+                  date: "Sabtu, 25 Oktober 2025",
+                  time: "11:00 - 14:00 WIB",
+                  venueName: "Grand Ballroom Hotel Indonesia Kempinski",
+                  address: "Jl. M.H. Thamrin No.1, Menteng, Jakarta Pusat",
+                  googleMapsUrl: "https://maps.google.com",
+                  icon: "glass",
+                },
+              ],
+            },
+          },
+          {
+            type: "LoveStoryTimeline",
+            props: {
+              id: "story-1",
+              sectionTitle: "Our Love Story",
+              showStoryPhotos: false,
+              showStoryYear: true,
+              showStoryDescription: true,
+              stories: [
+                {
+                  year: "2020",
+                  title: "Pertama Bertemu",
+                  description:
+                    "Tak sengaja berjumpa di suatu sore yang teduh di sudut perpustakaan kota.",
+                  photoUrl: "",
+                },
+                {
+                  year: "2022",
+                  title: "Mulai Melangkah Bersama",
+                  description:
+                    "Saling meyakinkan hati untuk membangun visi hidup berdua.",
+                  photoUrl: "",
+                },
+                {
+                  year: "2025",
+                  title: "Menuju Pelaminan",
+                  description:
+                    "Mengikat janji suci di hadapan keluarga dan para sahabat tercinta.",
+                  photoUrl: "",
+                },
+              ],
+            },
+          },
+          {
+            type: "PhotoGallery",
+            props: {
+              id: "gallery-1",
+              sectionTitle: "Galeri Kenangan",
+              showCaptions: false,
+              images: [
+                {
+                  imageUrl:
+                    "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+                  caption: "Prewedding Moment",
+                },
+                {
+                  imageUrl:
+                    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop",
+                  caption: "Our Journey",
+                },
+                {
+                  imageUrl:
+                    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop",
+                  caption: "Together Forever",
+                },
+              ],
+            },
+          },
+          {
+            type: "DigitalGift",
+            props: {
+              id: "gift-1",
+              sectionTitle: "Tanda Kasih & Amplop Digital",
+              showBankAccounts: true,
+              showCopyAccount: true,
+              showQRIS: false,
+              showPhysicalGift: false,
+              physicalGiftAddress:
+                "Jl. Melati No. 12, Kebayoran Baru, Jakarta Selatan 12150",
+              physicalGiftRecipient: `${groom} & ${bride}`,
+              accounts: [
+                {
+                  bankName: "Bank Central Asia (BCA)",
+                  accountNumber: "8712345678",
+                  accountHolder: groom,
+                },
+                {
+                  bankName: "Bank Mandiri",
+                  accountNumber: "1310012345678",
+                  accountHolder: bride,
+                },
+              ],
+              qrisImageUrl: "",
+            },
+          },
+          {
+            type: "RSVPGuestbook",
+            props: {
+              id: "rsvp-1",
+              sectionTitle: "Konfirmasi Kehadiran & Doa Restu",
+              sectionSubtitle:
+                "Merupakan kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.",
+              showGuestCountSelect: true,
+              showMessageField: true,
+              showWishesFeed: true,
+            },
+          },
+        ],
+        root: {
+          props: {
+            themeConfig: selectedPreset.config,
+          },
+        },
+      };
+    }
+
     const invitation = await prisma.invitation.create({
       data: {
         title: data.title,
@@ -177,7 +382,7 @@ export async function createInvitation(data: {
         userId: finalUserId,
         groomName: data.groomName ?? "",
         brideName: data.brideName ?? "",
-        layoutData: JSON.stringify({ content: [], root: { props: {} } }),
+        layoutData: JSON.stringify(layoutDataObj),
       },
     });
     return { success: true, invitation };
@@ -390,33 +595,6 @@ export async function getAllInvitations() {
         },
       },
     });
-
-    // If empty for this user, automatically create an initial invitation
-    if (invitations.length === 0) {
-      const uniqueSlug = `undangan-${Math.random().toString(36).substring(2, 7)}`;
-      const newId = `inv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const firstInv = await prisma.invitation.create({
-        data: {
-          id: newId,
-          slug: uniqueSlug,
-          title: "The Wedding of Raden & Kirana",
-          userId,
-          groomName: "Raden",
-          brideName: "Kirana",
-          layoutData: JSON.stringify({ content: [], root: { props: {} } }),
-          isPublished: false,
-        },
-        include: {
-          _count: {
-            select: {
-              guests: true,
-              guestbook: true,
-            },
-          },
-        },
-      });
-      return [firstInv];
-    }
 
     return invitations;
   } catch (error) {

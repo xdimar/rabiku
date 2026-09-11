@@ -52,7 +52,7 @@ export default function EditorClient({
   // Ensure data always has valid content array with default template fallback
   const initialValidData: InvitationData = useMemo(() => {
     const parsed = initialData as InvitationData | null | undefined;
-    if (parsed && Array.isArray(parsed.content) && parsed.content.length > 0) {
+    if (parsed && Array.isArray(parsed.content)) {
       return parsed;
     }
     return defaultInvitationData;
