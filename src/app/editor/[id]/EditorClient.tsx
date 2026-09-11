@@ -217,19 +217,6 @@ export default function EditorClient({
                 </span>
               )}
 
-              {/* Tombol Lihat Pratinjau Tamu */}
-              <a
-                href={`/${previewSlug}?to=Tamu+Undangan`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-stone-200 bg-white text-stone-700 text-xs font-semibold hover:bg-stone-50 hover:border-stone-300 transition-all shadow-xs"
-                title="Buka pratinjau publik undangan di tab baru"
-              >
-                <Eye className="w-3.5 h-3.5 text-stone-600" />
-                <span className="hidden sm:inline">Pratinjau Tamu</span>
-                <ExternalLink className="w-3 h-3 text-stone-400" />
-              </a>
-
               {/* Quick Tools Dropdown (Compact Header Access) */}
               <div className="relative">
                 <button
@@ -306,15 +293,18 @@ export default function EditorClient({
                 <span className="hidden sm:inline">Dashboard</span>
               </Link>
 
-              {/* Live Preview Button */}
-              <Link
+              {/* Tombol Lihat Hasil (Live Preview) Utama */}
+              <a
                 href={`/${previewSlug}?to=Tamu+Undangan`}
                 target="_blank"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-stone-200 bg-white text-stone-700 text-xs font-medium hover:bg-stone-50 hover:border-stone-300 transition-all shadow-xs"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer ring-1 ring-stone-900"
+                title="Buka tampilan undangan tamu asli (Live Preview) di tab baru"
               >
-                <ExternalLink className="w-3.5 h-3.5 text-stone-500" />
-                <span className="hidden sm:inline">Preview</span>
-              </Link>
+                <Eye className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>Lihat Hasil (Live Preview)</span>
+                <ExternalLink className="w-3 h-3 text-stone-400" />
+              </a>
 
               {children}
             </div>
@@ -329,7 +319,23 @@ export default function EditorClient({
         onOpenGuest={() => setIsGuestModalOpen(true)}
         onOpenRSVP={() => setIsRSVPModalOpen(true)}
         hasAudio={Boolean(audioUrl)}
+        previewUrl={`/${previewSlug}?to=Tamu+Undangan`}
       />
+
+      {/* Floating Bottom Quick Action: Lihat Hasil (Live Preview) */}
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+        <a
+          href={`/${previewSlug}?to=Tamu+Undangan`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-stone-900/95 hover:bg-stone-900 text-white text-xs font-semibold transition-all duration-200 shadow-xl hover:shadow-2xl border border-stone-700/80 active:scale-95 backdrop-blur-sm cursor-pointer"
+          title="Buka pratinjau publik undangan di tab baru"
+        >
+          <Eye className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform animate-pulse" />
+          <span>Lihat Hasil (Live Preview)</span>
+          <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-200 ml-0.5" />
+        </a>
+      </div>
 
       {/* Typography & Color Studio Modal */}
       <TypographySettingsModal
