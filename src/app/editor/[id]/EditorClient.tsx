@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   ExternalLink,
+  Eye,
   Check,
   Loader2,
   Users,
@@ -215,6 +216,19 @@ export default function EditorClient({
                   Menyimpan...
                 </span>
               )}
+
+              {/* Tombol Lihat Pratinjau Tamu */}
+              <a
+                href={`/${previewSlug}?to=Tamu+Undangan`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-stone-200 bg-white text-stone-700 text-xs font-semibold hover:bg-stone-50 hover:border-stone-300 transition-all shadow-xs"
+                title="Buka pratinjau publik undangan di tab baru"
+              >
+                <Eye className="w-3.5 h-3.5 text-stone-600" />
+                <span className="hidden sm:inline">Pratinjau Tamu</span>
+                <ExternalLink className="w-3 h-3 text-stone-400" />
+              </a>
 
               {/* Quick Tools Dropdown (Compact Header Access) */}
               <div className="relative">

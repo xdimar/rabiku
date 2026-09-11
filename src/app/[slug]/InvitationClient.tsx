@@ -6,7 +6,7 @@ import { puckConfig, defaultInvitationData } from "@/config/puck.config";
 import EnvelopeCover from "@/components/invitation/EnvelopeCover";
 import AudioPlayer from "@/components/invitation/AudioPlayer";
 import { ToastProvider } from "@/components/ui/Toast";
-import { Heart } from "lucide-react";
+import { Heart, Sparkles } from "lucide-react";
 import { getThemeStyles, type WeddingThemeConfig } from "@/config/theme.config";
 
 interface InvitationClientProps {
@@ -76,10 +76,25 @@ export default function InvitationClient({
             <p className="text-xs text-stone-400">
               Terima kasih atas doa restu Anda
             </p>
-            <p className="text-[10px] text-stone-300 mt-6">
-              Dibuat dengan{" "}
-              <span className="text-stone-400">Rabiku</span>
-            </p>
+            <div className="mt-8 pt-6 border-t border-stone-100 flex flex-col items-center">
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-100/90 hover:bg-stone-900 border border-stone-200/80 hover:border-stone-900 transition-all duration-300 shadow-2xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 group-hover:text-amber-400 transition-colors" />
+                <span className="text-xs font-medium text-stone-600 group-hover:text-white transition-colors">
+                  Dibuat dengan <strong className="font-semibold text-stone-900 group-hover:text-amber-200">Rabiku</strong>
+                </span>
+                <span className="text-[11px] text-stone-400 group-hover:text-stone-300 font-medium ml-1">
+                  • Buat Undanganmu →
+                </span>
+              </a>
+              <p className="text-[10px] text-stone-400 mt-2">
+                Platform Undangan Pernikahan Digital Elegan &amp; Bebas Desain
+              </p>
+            </div>
           </div>
         </footer>
       </main>

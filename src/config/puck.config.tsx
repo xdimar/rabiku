@@ -169,9 +169,19 @@ type RSVPGuestbookProps = {
   showWishesFeed?: boolean;
 };
 
+type WeddingQuoteProps = {
+  title?: string;
+  arabicText?: string;
+  translationText?: string;
+  sourceText?: string;
+  quoteStyle?: "classic" | "card" | "minimal";
+  showArabic?: boolean;
+};
+
 type Components = {
   CoverHero: CoverHeroProps;
   CoupleProfile: CoupleProfileProps;
+  WeddingQuote: WeddingQuoteProps;
   EventSchedule: EventScheduleProps;
   CountdownTimer: CountdownTimerProps;
   LoveStoryTimeline: LoveStoryTimelineProps;
@@ -1272,6 +1282,69 @@ function RSVPGuestbookRender({
   );
 }
 
+/* ─────────────────────────────────────────────
+   9. WEDDING QUOTE (DOA & AYAT SUCI)
+   ───────────────────────────────────────────── */
+
+function WeddingQuoteRender({
+  title = "Doa & Ayat Suci",
+  arabicText = "وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً",
+  translationText = "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang. Sungguh, pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berpikir.",
+  sourceText = "QS. Ar-Rum: 21",
+  quoteStyle = "classic",
+  showArabic = true,
+}: WeddingQuoteProps) {
+  return (
+    <motion.section
+      {...fadeInUp}
+      className="py-16 sm:py-24 px-6 bg-stone-50/50 flex flex-col items-center justify-center text-center relative overflow-hidden"
+    >
+      <div
+        className={`max-w-2xl mx-auto w-full transition-all ${
+          quoteStyle === "card"
+            ? "bg-white p-8 sm:p-12 rounded-3xl border border-stone-200/80 shadow-xs"
+            : quoteStyle === "minimal"
+            ? "py-4"
+            : "py-6"
+        }`}
+      >
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-10 h-px bg-stone-300" />
+          <Heart className="w-4 h-4 text-amber-600" />
+          <div className="w-10 h-px bg-stone-300" />
+        </div>
+
+        {title && (
+          <p className="text-xs uppercase tracking-[0.25em] text-stone-400 font-semibold mb-6">
+            {title}
+          </p>
+        )}
+
+        {showArabic && arabicText && (
+          <p
+            dir="rtl"
+            className="font-serif text-xl sm:text-2xl lg:text-3xl text-stone-800 leading-[2.2] sm:leading-[2.4] mb-6 font-medium px-4"
+          >
+            {arabicText}
+          </p>
+        )}
+
+        {translationText && (
+          <p className="font-serif text-base sm:text-lg text-stone-600 leading-relaxed italic mb-5 px-2">
+            &ldquo;{translationText}&rdquo;
+          </p>
+        )}
+
+        {sourceText && (
+          <p className="text-xs font-semibold text-stone-800 uppercase tracking-widest">
+            — {sourceText} —
+          </p>
+        )}
+      </div>
+    </motion.section>
+  );
+}
+
 /* ═══════════════════════════════════════════════
    PUCK CONFIG
    ═══════════════════════════════════════════════ */
@@ -1289,7 +1362,7 @@ export const puckConfig: Config<Components, RootProps> = {
   },
   categories: {
     hero: { title: "Hero & Cover", components: ["CoverHero"] },
-    about: { title: "Tentang Mempelai", components: ["CoupleProfile", "LoveStoryTimeline"] },
+    about: { title: "Tentang Mempelai", components: ["CoupleProfile", "WeddingQuote", "LoveStoryTimeline"] },
     event: { title: "Acara", components: ["EventSchedule", "CountdownTimer"] },
     media: { title: "Media", components: ["PhotoGallery"] },
     engagement: { title: "Interaksi", components: ["DigitalGift", "RSVPGuestbook"] },
@@ -1484,6 +1557,45 @@ export const puckConfig: Config<Components, RootProps> = {
         },
       },
       render: CoupleProfileRender,
+    },
+
+    /* ─── 2.5 Wedding Quote ─── */
+    WeddingQuote: {
+      label: "Kutipan & Doa Suci",
+      defaultProps: {
+        title: "Doa & Ayat Suci",
+        arabicText:
+          "وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً",
+        translationText:
+          "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.",
+        sourceText: "QS. Ar-Rum: 21",
+        quoteStyle: "classic",
+        showArabic: true,
+      },
+      fields: {
+        title: { type: "text", label: "Judul Bagian" },
+        showArabic: {
+          type: "radio",
+          label: "Teks Arab / Bahasa Asli",
+          options: [
+            { label: "Tampilkan", value: true },
+            { label: "Sembunyikan", value: false },
+          ],
+        },
+        arabicText: { type: "textarea", label: "Teks Arab / Bahasa Asli" },
+        translationText: { type: "textarea", label: "Terjemahan / Isi Kutipan" },
+        sourceText: { type: "text", label: "Sumber (mis. QS. Ar-Rum: 21 / 1 Korintus 13:4)" },
+        quoteStyle: {
+          type: "select",
+          label: "Gaya Tampilan",
+          options: [
+            { label: "Klasik Elegan", value: "classic" },
+            { label: "Kartu Bersih (Card Box)", value: "card" },
+            { label: "Minimalis Sederhana", value: "minimal" },
+          ],
+        },
+      },
+      render: WeddingQuoteRender,
     },
 
     /* ─── 3. Event Schedule ─── */
