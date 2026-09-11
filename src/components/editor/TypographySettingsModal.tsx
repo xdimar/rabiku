@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Palette,
@@ -29,7 +29,7 @@ import {
 interface TypographySettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentTheme?: Partial<WeddingThemeConfig>;
+  currentTheme?: WeddingThemeConfig;
   onSave: (newTheme: WeddingThemeConfig) => Promise<void> | void;
   groomName?: string;
   brideName?: string;
@@ -50,6 +50,15 @@ export default function TypographySettingsModal({
     ...defaultThemeConfig,
     ...(currentTheme || {}),
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setTheme({
+        ...defaultThemeConfig,
+        ...(currentTheme || {}),
+      });
+    }
+  }, [isOpen, currentTheme]);
 
   const [fontSubTab, setFontSubTab] = useState<"heading" | "body" | "accent">("heading");
   const [fontCategoryFilter, setFontCategoryFilter] = useState<"all" | FontCategory>("all");

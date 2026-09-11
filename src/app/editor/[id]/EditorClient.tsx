@@ -23,7 +23,11 @@ import RSVPManagerModal from "@/components/editor/RSVPManagerModal";
 import AudioSettingsModal from "@/components/editor/AudioSettingsModal";
 import TypographySettingsModal from "@/components/editor/TypographySettingsModal";
 import StudioSidebarDock from "@/components/editor/StudioSidebarDock";
-import { type WeddingThemeConfig } from "@/config/theme.config";
+import {
+  type WeddingThemeConfig,
+  getThemeStyles,
+  defaultThemeConfig,
+} from "@/config/theme.config";
 
 interface EditorClientProps {
   invitationId: string;
@@ -59,6 +63,20 @@ export default function EditorClient({
   }, [initialData]);
 
   const [dataState, setDataState] = useState<InvitationData>(initialValidData);
+
+  const [editorKey, setEditorKey] = useState(0);
+
+  // Extract current active themeConfig
+  const currentThemeConfig: WeddingThemeConfig = useMemo(() => {
+    return (
+      (dataState.root?.props as { themeConfig?: WeddingThemeConfig })
+        ?.themeConfig || defaultThemeConfig
+    );
+  }, [dataState.root?.props]);
+
+  const themeStyles = useMemo(() => {
+    return getThemeStyles(currentThemeConfig);
+  }, [currentThemeConfig]);
 
   // Extract couple names from CoverHero if present
   const { groomName, brideName } = useMemo(() => {
@@ -113,6 +131,7 @@ export default function EditorClient({
       },
     };
     setDataState(updatedData);
+    setEditorKey((prev) => prev + 1);
     setIsSaving(true);
     try {
       const coverItem = updatedData.content?.find((c) => c.type === "CoverHero");
@@ -152,8 +171,10 @@ export default function EditorClient({
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-stone-100 flex flex-col">
       <Puck
+        key={editorKey}
         config={puckConfig}
         data={dataState}
+        onChange={(data) => setDataState(data as InvitationData)}
         onPublish={handlePublish}
         headerTitle={invitationTitle}
         headerPath={`/editor/${invitationId}`}
@@ -163,6 +184,23 @@ export default function EditorClient({
           { width: 1200, height: "auto", icon: "Monitor", label: "Desktop" },
         ]}
         overrides={{
+          iframe: ({ children, document: iframeDoc }) => {
+            return (
+              <div
+                data-invitation-root
+                style={themeStyles}
+                className="w-full min-h-screen"
+              >
+                {iframeDoc && (
+                  <link
+                    rel="stylesheet"
+                    href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Cinzel:wght@400..700&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@300..700&family=Jost:wght@300..700&family=Lora:ital,wght@0,400..700;1,400..700&family=MonteCarlo&family=Montserrat:wght@300..700&family=Outfit:wght@300..700&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300..700&family=Prata&display=swap"
+                  />
+                )}
+                {children}
+              </div>
+            );
+          },
           headerActions: ({ children }) => (
             <div className="flex items-center gap-2">
               {saveStatus && (
@@ -283,7 +321,7 @@ export default function EditorClient({
       <TypographySettingsModal
         isOpen={isTypographyModalOpen}
         onClose={() => setIsTypographyModalOpen(false)}
-        currentTheme={(dataState.root?.props as { themeConfig?: WeddingThemeConfig })?.themeConfig}
+        currentTheme={currentThemeConfig}
         onSave={handleSaveTheme}
         groomName={groomName}
         brideName={brideName}
