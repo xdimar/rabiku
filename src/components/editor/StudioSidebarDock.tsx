@@ -13,7 +13,6 @@ import {
   GripVertical,
   ArrowLeftRight,
   RotateCcw,
-  Eye,
 } from "lucide-react";
 
 interface StudioSidebarDockProps {
@@ -22,7 +21,6 @@ interface StudioSidebarDockProps {
   onOpenGuest: () => void;
   onOpenRSVP: () => void;
   hasAudio?: boolean;
-  previewUrl?: string;
 }
 
 export default function StudioSidebarDock({
@@ -31,7 +29,6 @@ export default function StudioSidebarDock({
   onOpenGuest,
   onOpenRSVP,
   hasAudio = false,
-  previewUrl,
 }: StudioSidebarDockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [dockSide, setDockSide] = useState<"right" | "left">("right");
@@ -39,19 +36,6 @@ export default function StudioSidebarDock({
   const dragControls = useDragControls();
 
   const tools = [
-    {
-      id: "preview",
-      label: "Lihat Hasil (Live Preview)",
-      sublabel: "Buka Tampilan Tamu Asli",
-      icon: Eye,
-      onClick: () => {
-        if (typeof window !== "undefined" && previewUrl) {
-          window.open(previewUrl, "_blank");
-        }
-      },
-      badge: "Cepat",
-      accentColor: "text-rose-700 bg-rose-50 border-rose-200",
-    },
     {
       id: "typography",
       label: "Tipografi & Warna",

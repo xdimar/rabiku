@@ -105,7 +105,7 @@ export async function getInvitationById(id: string) {
 
 export async function getInvitationBySlug(slug: string) {
   try {
-    const invitation = await prisma.invitation.findUnique({
+    let invitation = await prisma.invitation.findUnique({
       where: { slug },
       include: {
         guestbook: {
@@ -114,11 +114,40 @@ export async function getInvitationBySlug(slug: string) {
         },
       },
     });
+
+    // Fallback 1: If not found by slug, search by id in case invitationId was passed
+    if (!invitation) {
+      invitation = await prisma.invitation.findUnique({
+        where: { id: slug },
+        include: {
+          guestbook: {
+            orderBy: { createdAt: "desc" },
+            take: 50,
+          },
+        },
+      });
+    }
+
+    // Fallback 2: If demo preview, check if saved demo record exists in DB
+    if (!invitation && (slug === "preview-demo" || slug === "demo")) {
+      invitation = await prisma.invitation.findFirst({
+        where: {
+          OR: [{ id: "demo" }, { slug: "demo" }, { slug: "preview-demo" }],
+        },
+        include: {
+          guestbook: {
+            orderBy: { createdAt: "desc" },
+            take: 50,
+          },
+        },
+      });
+    }
+
     if (!invitation) {
       if (slug === "preview-demo" || slug === "demo") {
         return {
           id: "demo",
-          slug,
+          slug: "preview-demo",
           title: "The Wedding of Raden & Kirana",
           groomName: "Raden",
           brideName: "Kirana",
