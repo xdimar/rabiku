@@ -127,7 +127,7 @@ export default function EditorSimulation({
   return (
     <div className="relative w-full max-w-2xl mx-auto select-none">
       {/* Ambient background glow behind mockup */}
-      <div className="absolute -inset-4 bg-gradient-to-tr from-amber-200/30 via-stone-200/40 to-rose-200/30 rounded-3xl blur-2xl -z-10 pointer-events-none" />
+      <div className="absolute -inset-4 bg-gradient-to-tr from-amber-200/25 via-stone-200/30 to-amber-100/25 rounded-3xl blur-2xl -z-10 pointer-events-none" />
 
       {/* Floating Badges */}
       {/* 1. Top Right - Music Player Indicator */}
@@ -330,7 +330,7 @@ export default function EditorSimulation({
                   </p>
                   <div className="w-8 h-0.5 bg-stone-300 mx-auto my-1.5 rounded-full" />
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-100 text-[9px] text-stone-600 border border-stone-200">
-                    <Heart className="w-2.5 h-2.5 text-rose-500 fill-rose-500" />
+                    <Heart className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />
                     <span>{hashtag}</span>
                   </span>
                 </div>

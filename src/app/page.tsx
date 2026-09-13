@@ -8,16 +8,10 @@ import {
   Smartphone,
   ShieldCheck,
   Music,
-  CheckCircle2,
-  Clock,
-  MapPin,
   CreditCard,
   Layers,
-  Star,
   Quote,
-  Eye,
   Sliders,
-  Check,
 } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import HeroSection from "@/components/landing/HeroSection";
@@ -28,39 +22,39 @@ export default async function HomePage() {
   const session = await getSession();
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 selection:bg-amber-200 selection:text-stone-900 overflow-x-hidden transition-colors">
+    <div className="min-h-screen bg-stone-50 text-stone-900 selection:bg-amber-200 selection:text-stone-900 overflow-x-hidden transition-colors">
       {/* ─── 1. Navigation Bar (Glassmorphism) ─── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-stone-50/80 dark:bg-stone-950/80 backdrop-blur-xl border-b border-stone-200/70 dark:border-stone-800 transition-all">
+      <nav className="fixed top-0 inset-x-0 z-50 bg-stone-50/85 backdrop-blur-xl border-b border-stone-200/80 transition-all">
         <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-full bg-stone-900 dark:bg-amber-500/20 text-amber-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-full bg-stone-900 text-amber-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
               <Heart className="w-4 h-4 fill-amber-400" />
             </div>
             <div>
-              <span className="font-serif text-xl font-bold tracking-tight text-stone-900 dark:text-white">
+              <span className="font-serif text-xl font-bold tracking-tight text-stone-900">
                 Rabiku
               </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-stone-200/80 text-stone-700">
                 Studio Pro
               </span>
             </div>
           </Link>
 
           {/* Nav Links (Desktop) */}
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600 dark:text-stone-300">
-            <a href="#cara-kerja" className="hover:text-stone-900 dark:hover:text-white transition-colors">
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600">
+            <a href="#cara-kerja" className="hover:text-stone-900 transition-colors">
               Cara Kerja
             </a>
-            <a href="#whatsapp-simulator" className="hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href="#whatsapp-simulator" className="hover:text-stone-900 transition-colors">
               Simulasi WhatsApp
             </a>
-            <a href="#fitur" className="hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href="#fitur" className="hover:text-stone-900 transition-colors">
               Fitur
             </a>
-            <a href="#template" className="hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href="#template" className="hover:text-stone-900 transition-colors">
               Template
             </a>
-            <a href="#testimoni" className="hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href="#testimoni" className="hover:text-stone-900 transition-colors">
               Testimoni
             </a>
           </div>
@@ -72,7 +66,7 @@ export default async function HomePage() {
                 {session.role === "ADMIN" && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-100 border border-amber-300/80 text-amber-900 text-xs font-semibold hover:bg-amber-200/80 transition-colors shadow-sm"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-100 border border-amber-300/80 text-amber-900 text-xs font-semibold hover:bg-amber-200/80 transition-colors shadow-2xs"
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
                     <span>Admin Panel</span>
@@ -80,7 +74,7 @@ export default async function HomePage() {
                 )}
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs sm:text-sm font-semibold hover:bg-stone-800 transition-all shadow-md hover:shadow-stone-900/20"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs sm:text-sm font-semibold hover:bg-stone-800 transition-all shadow-md hover:shadow-stone-900/20 active:scale-[0.98]"
                 >
                   <span>Dashboard Studio</span>
                   <ArrowRight className="w-4 h-4" />
@@ -96,7 +90,7 @@ export default async function HomePage() {
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs sm:text-sm font-semibold hover:bg-stone-800 transition-all shadow-md hover:shadow-stone-900/20"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs sm:text-sm font-semibold hover:bg-stone-800 transition-all shadow-md hover:shadow-stone-900/20 active:scale-[0.98]"
                 >
                   <span>Daftar Gratis</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -159,12 +153,12 @@ export default async function HomePage() {
                   <span className="font-serif text-4xl font-bold text-stone-300 group-hover:text-amber-600 transition-colors">
                     {item.step}
                   </span>
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-stone-200 text-stone-600 shadow-sm">
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-stone-200 text-stone-600 shadow-2xs">
                     {item.badge}
                   </span>
                 </div>
 
-                <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200 flex items-center justify-center mb-5 text-stone-800 group-hover:bg-stone-900 group-hover:text-amber-400 transition-colors shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200/80 flex items-center justify-center mb-5 text-stone-800 group-hover:bg-stone-900 group-hover:text-amber-400 transition-colors shadow-2xs">
                   <item.icon className="w-6 h-6" />
                 </div>
 
@@ -184,7 +178,7 @@ export default async function HomePage() {
       <WhatsAppSimulator />
 
       {/* ─── 4. Feature Grid Section ─── */}
-      <section id="fitur" className="py-24 px-6 bg-stone-50">
+      <section id="fitur" className="py-24 px-6 bg-white border-b border-stone-200/70">
         <div className="max-w-6xl mx-auto">
           <ScrollFadeIn direction="up" className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs uppercase tracking-[0.25em] text-amber-700 font-bold mb-3 inline-block">
@@ -235,9 +229,9 @@ export default async function HomePage() {
                 key={i}
                 direction="up"
                 delay={i * 0.1}
-                className="p-7 rounded-3xl bg-white border border-stone-200/80 hover:border-amber-300/80 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                className="p-7 rounded-3xl bg-stone-50 border border-stone-200/80 hover:border-amber-300/80 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200/60 flex items-center justify-center mb-5 text-stone-700 group-hover:bg-amber-400 group-hover:text-stone-950 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200/80 flex items-center justify-center mb-5 text-stone-700 group-hover:bg-stone-900 group-hover:text-amber-400 transition-colors shadow-2xs">
                   <feature.icon className="w-6 h-6" />
                 </div>
                 <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">
@@ -253,14 +247,14 @@ export default async function HomePage() {
       </section>
 
       {/* ─── 5. Theme & Template Showcase ─── */}
-      <section id="template" className="py-24 px-6 bg-white border-t border-stone-200/70">
+      <section id="template" className="py-24 px-6 bg-stone-50 border-b border-stone-200/70">
         <div className="max-w-6xl mx-auto">
           <ScrollFadeIn direction="up" className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs uppercase tracking-[0.25em] text-amber-700 font-bold mb-3 inline-block">
               Desain Premium
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-              Pilihan Tema Estetik & Abadi
+              Pilihan Tema Estetik &amp; Abadi
             </h2>
             <p className="text-stone-500 mt-3 text-sm sm:text-base">
               Koleksi gaya desain yang dirancang khusus untuk memancarkan aura sakral dan kehangatan pernikahan Anda.
@@ -278,7 +272,7 @@ export default async function HomePage() {
               {
                 name: "Champagne Royale",
                 desc: "Sentuhan aksen emas hangat dan krem lembut untuk nuansa pernikahan agung dan mewah.",
-                color: "bg-amber-950 text-amber-50",
+                color: "bg-gradient-to-br from-amber-950 via-stone-900 to-amber-900 text-amber-50",
                 tag: "Luxury",
               },
               {
@@ -292,7 +286,7 @@ export default async function HomePage() {
                 key={idx}
                 direction="up"
                 delay={idx * 0.15}
-                className="rounded-3xl border border-stone-200 bg-stone-50 overflow-hidden shadow-sm hover:shadow-xl transition-all group"
+                className="rounded-3xl border border-stone-200/80 bg-white overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-300/80 transition-all group"
               >
                 {/* Visual Card Header */}
                 <div className={`p-8 ${theme.color} relative h-48 flex flex-col justify-between`}>
@@ -300,7 +294,7 @@ export default async function HomePage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md">
                       {theme.tag}
                     </span>
-                    <Heart className="w-4 h-4 text-amber-400" />
+                    <Heart className="w-4 h-4 text-amber-400 fill-amber-400/40" />
                   </div>
                   <div>
                     <span className="text-xs opacity-70">Undangan Pernikahan</span>
@@ -316,8 +310,8 @@ export default async function HomePage() {
                     {theme.desc}
                   </p>
                   <Link
-                    href={session ? "/dashboard" : "/editor/demo"}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition-colors shadow-sm"
+                    href={session ? "/dashboard" : "/onboarding"}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 hover:text-amber-300 transition-colors shadow-sm active:scale-[0.98]"
                   >
                     <span>Coba Tema Ini</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -330,7 +324,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── 6. Social Proof / Testimonials ─── */}
-      <section id="testimoni" className="py-24 px-6 bg-stone-50 border-t border-stone-200/70">
+      <section id="testimoni" className="py-24 px-6 bg-white border-b border-stone-200/70">
         <div className="max-w-6xl mx-auto">
           <ScrollFadeIn direction="up" className="text-center max-w-xl mx-auto mb-16">
             <span className="text-xs uppercase tracking-[0.25em] text-amber-700 font-bold mb-3 inline-block">
@@ -349,6 +343,7 @@ export default async function HomePage() {
                 name: "Sarah & Budi",
                 city: "Jakarta",
                 wedding: "Pernikahan Desember 2025",
+                avatarBg: "bg-amber-100 text-amber-900",
               },
               {
                 quote:
@@ -356,6 +351,7 @@ export default async function HomePage() {
                 name: "Dimas & Anisa",
                 city: "Bandung",
                 wedding: "Pernikahan Januari 2026",
+                avatarBg: "bg-stone-200 text-stone-800",
               },
               {
                 quote:
@@ -363,22 +359,25 @@ export default async function HomePage() {
                 name: "Ryan & Jessica",
                 city: "Surabaya",
                 wedding: "Pernikahan Februari 2026",
+                avatarBg: "bg-amber-200/80 text-amber-950",
               },
             ].map((t, idx) => (
               <ScrollFadeIn
                 key={idx}
                 direction="up"
                 delay={idx * 0.15}
-                className="p-8 rounded-3xl bg-white border border-stone-200/80 shadow-sm relative flex flex-col justify-between"
+                className="p-8 rounded-3xl bg-stone-50 border border-stone-200/80 shadow-sm relative flex flex-col justify-between hover:shadow-md hover:border-amber-200/80 transition-all"
               >
                 <div>
-                  <Quote className="w-8 h-8 text-amber-500/20 mb-4" />
+                  <Quote className="w-8 h-8 text-amber-500/25 mb-4" />
                   <p className="text-stone-600 text-sm leading-relaxed mb-6 italic">
                     &ldquo;{t.quote}&rdquo;
                   </p>
                 </div>
-                <div className="pt-4 border-t border-stone-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 font-bold flex items-center justify-center font-serif text-sm">
+                <div className="pt-4 border-t border-stone-200/60 flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full ${t.avatarBg} font-bold flex items-center justify-center font-serif text-sm border-2 border-white shadow-2xs`}
+                  >
                     {t.name.split(" ")[0][0]}
                     {t.name.split("&")[1]?.trim()[0]}
                   </div>
@@ -398,7 +397,7 @@ export default async function HomePage() {
       {/* ─── 7. Final Call to Action (Luxury Dark Banner) ─── */}
       <section className="py-24 px-6 bg-stone-900 text-white relative overflow-hidden">
         {/* Glow Effects */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <ScrollFadeIn direction="up">
@@ -409,12 +408,12 @@ export default async function HomePage() {
               Hari Bahagia Anda Pantas Mendapatkan Undangan Terbaik
             </h2>
             <p className="text-stone-300 text-base sm:text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-              Mulai sekarang tanpa biaya. Susun undangan impian Anda dengan drag & drop dan bagikan momen sakral kepada kerabat tercinta.
+              Mulai sekarang tanpa biaya. Susun undangan impian Anda dengan drag &amp; drop dan bagikan momen sakral kepada kerabat tercinta.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href={session ? "/dashboard" : "/register"}
-                className="flex items-center gap-2.5 px-9 py-4 rounded-full bg-amber-400 text-stone-950 font-bold text-sm hover:bg-amber-300 transition-all shadow-xl hover:shadow-amber-400/20 hover:scale-105"
+                href={session ? "/dashboard" : "/onboarding"}
+                className="flex items-center gap-2.5 px-9 py-4 rounded-full bg-amber-400 text-stone-950 font-bold text-sm hover:bg-amber-300 transition-all shadow-xl hover:shadow-amber-400/20 hover:scale-105 active:scale-100"
               >
                 <Sparkles className="w-4 h-4 text-stone-950" />
                 <span>Buat Undangan Sekarang</span>
@@ -432,7 +431,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── 8. Footer ─── */}
-      <footer className="py-12 px-6 bg-stone-950 text-stone-400 border-t border-stone-800 text-xs">
+      <footer className="py-12 px-6 bg-stone-950 text-stone-400 border-t border-stone-800/80 text-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-400">

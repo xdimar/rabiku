@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -33,13 +33,27 @@ const STEPS = [
 
 export default function OnboardingClient({ currentUser: _currentUser }: OnboardingClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialGroom = searchParams?.get("groom") || "";
+  const initialBride = searchParams?.get("bride") || "";
+
   const [currentStep, setCurrentStep] = useState(1);
 
   // Form states
-  const [groomName, setGroomName] = useState("");
-  const [brideName, setBrideName] = useState("");
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
+  const [groomName, setGroomName] = useState(initialGroom);
+  const [brideName, setBrideName] = useState(initialBride);
+  const [title, setTitle] = useState(
+    initialGroom && initialBride
+      ? `The Wedding of ${initialGroom} & ${initialBride}`
+      : ""
+  );
+  const [slug, setSlug] = useState(
+    initialGroom && initialBride
+      ? `${initialGroom.toLowerCase().replace(/[^a-z0-9]/g, "")}-${initialBride
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "")}`
+      : ""
+  );
   const [selectedTemplateId, setSelectedTemplateId] = useState("minimalist");
   const [selectedThemePresetId, setSelectedThemePresetId] = useState("classic-monochrome");
   const [isCreating, setIsCreating] = useState(false);
