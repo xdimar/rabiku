@@ -22,9 +22,18 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     ? `Undangan spesial untuk ${to}. ${title}`
     : `Anda diundang ke pernikahan ${invitation.groomName} & ${invitation.brideName}`;
 
+  const initials = `${invitation.groomName?.[0] || "R"}&${invitation.brideName?.[0] || "K"}`;
+  const svgFavicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="28" fill="#1c1917"/><text x="50%" y="54%" dominant-baseline="central" text-anchor="middle" font-family="serif" font-size="36" font-weight="bold" fill="#f59e0b">${initials}</text></svg>`;
+  const faviconUrl = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
+
   return {
     title,
     description,
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
     openGraph: {
       title,
       description,

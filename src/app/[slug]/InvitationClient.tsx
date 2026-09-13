@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Render, type Data } from "@puckeditor/core";
 import { puckConfig, defaultInvitationData } from "@/config/puck.config";
 import EnvelopeCover from "@/components/invitation/EnvelopeCover";
@@ -8,6 +8,7 @@ import AudioPlayer from "@/components/invitation/AudioPlayer";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Heart, Sparkles } from "lucide-react";
 import { getThemeStyles, type WeddingThemeConfig } from "@/config/theme.config";
+import { recordInvitationView } from "@/app/actions/analytics";
 
 interface InvitationClientProps {
   invitation: {
@@ -27,6 +28,20 @@ export default function InvitationClient({
   guestName,
 }: InvitationClientProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const viewRecorded = useRef(false);
+
+  // Track invitation view when envelope is opened
+  useEffect(() => {
+    if (isOpen && !viewRecorded.current) {
+      viewRecorded.current = true;
+      recordInvitationView({
+        invitationId: invitation.id,
+        viewerName: guestName || undefined,
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+        referrer: typeof document !== "undefined" ? document.referrer || undefined : undefined,
+      });
+    }
+  }, [isOpen, invitation.id, guestName]);
 
   const layoutData =
     (invitation.layoutData as Data)?.content?.length > 0

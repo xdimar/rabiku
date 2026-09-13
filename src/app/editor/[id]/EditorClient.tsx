@@ -3,8 +3,8 @@
 import { Puck, type Data } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import { puckConfig, defaultInvitationData, type InvitationData } from "@/config/puck.config";
-import { saveInvitationLayout } from "@/app/actions/invitation";
-import { useState, useCallback, useMemo } from "react";
+import { saveInvitationLayout, getRSVPSummary } from "@/app/actions/invitation";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ExternalLink,
@@ -17,12 +17,17 @@ import {
   Sparkles,
   ChevronDown,
   LayoutDashboard,
+  Undo2,
+  Redo2,
+  Share2,
 } from "lucide-react";
 import GuestManagerModal from "@/components/editor/GuestManagerModal";
 import RSVPManagerModal from "@/components/editor/RSVPManagerModal";
 import AudioSettingsModal from "@/components/editor/AudioSettingsModal";
 import TypographySettingsModal from "@/components/editor/TypographySettingsModal";
 import StudioSidebarDock from "@/components/editor/StudioSidebarDock";
+import ShareModal from "@/components/editor/ShareModal";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
 import {
   type WeddingThemeConfig,
   getThemeStyles,
@@ -46,11 +51,14 @@ export default function EditorClient({
 }: EditorClientProps) {
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const [isTypographyModalOpen, setIsTypographyModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
+  const [newRsvpCount, setNewRsvpCount] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(initialAudioUrl || null);
 
   const previewSlug = invitationId === "demo" ? "preview-demo" : (slug || invitationId);
@@ -65,8 +73,17 @@ export default function EditorClient({
   }, [initialData]);
 
   const [dataState, setDataState] = useState<InvitationData>(initialValidData);
-
   const [editorKey, setEditorKey] = useState(0);
+  const lastSavedDataRef = useRef<string>(JSON.stringify(initialValidData));
+
+  // Undo / Redo Hook
+  const {
+    pushState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useUndoRedo<InvitationData>(initialValidData);
 
   // Extract current active themeConfig
   const currentThemeConfig: WeddingThemeConfig = useMemo(() => {
@@ -88,6 +105,109 @@ export default function EditorClient({
     return { groomName: groom, brideName: bride };
   }, [dataState]);
 
+  // Fetch initial RSVP notification count
+  useEffect(() => {
+    if (!invitationId || invitationId === "demo") return;
+    getRSVPSummary(invitationId)
+      .then((res) => {
+        if (res?.recentCount) {
+          setNewRsvpCount(res.recentCount);
+        }
+      })
+      .catch(() => {});
+  }, [invitationId]);
+
+  // Undo Handler
+  const handleUndo = useCallback(() => {
+    const prev = undo();
+    if (prev) {
+      setDataState(prev);
+      setEditorKey((k) => k + 1);
+      setIsDirty(true);
+    }
+  }, [undo]);
+
+  // Redo Handler
+  const handleRedo = useCallback(() => {
+    const next = redo();
+    if (next) {
+      setDataState(next);
+      setEditorKey((k) => k + 1);
+      setIsDirty(true);
+    }
+  }, [redo]);
+
+  // Keyboard Shortcuts: Ctrl+Z / Ctrl+Y
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  // Puck data change handler
+  const handlePuckChange = useCallback(
+    (newData: Data) => {
+      const invData = newData as InvitationData;
+      setDataState(invData);
+      pushState(invData);
+      setIsDirty(true);
+    },
+    [pushState]
+  );
+
+  // Auto-Save Draft (Every 30 seconds)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const currentJson = JSON.stringify(dataState);
+      if (
+        currentJson !== lastSavedDataRef.current &&
+        !isSaving &&
+        invitationId !== "demo"
+      ) {
+        try {
+          const coverItem = dataState.content?.find((c) => c.type === "CoverHero");
+          const groom = (coverItem?.props as { groomName?: string })?.groomName;
+          const bride = (coverItem?.props as { brideName?: string })?.brideName;
+
+          await saveInvitationLayout(invitationId, {
+            layoutData: dataState,
+            groomName: groom,
+            brideName: bride,
+            audioUrl: audioUrl || undefined,
+            isPublished: true,
+          });
+          lastSavedDataRef.current = currentJson;
+          setIsDirty(false);
+          const time = new Date().toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          setSaveStatus(`Otomatis ${time}`);
+          setTimeout(() => setSaveStatus(null), 3500);
+        } catch (err) {
+          console.error("Auto-save failed:", err);
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [dataState, invitationId, audioUrl, isSaving]);
+
   const handlePublish = useCallback(
     async (publishData: Data) => {
       setDataState(publishData as InvitationData);
@@ -105,6 +225,8 @@ export default function EditorClient({
           isPublished: true,
         });
         if (result.success) {
+          lastSavedDataRef.current = JSON.stringify(publishData);
+          setIsDirty(false);
           const time = new Date().toLocaleTimeString("id-ID", {
             hour: "2-digit",
             minute: "2-digit",
@@ -133,6 +255,7 @@ export default function EditorClient({
       },
     };
     setDataState(updatedData);
+    pushState(updatedData);
     setEditorKey((prev) => prev + 1);
     setIsSaving(true);
     try {
@@ -148,6 +271,8 @@ export default function EditorClient({
         isPublished: true,
       });
       if (result.success) {
+        lastSavedDataRef.current = JSON.stringify(updatedData);
+        setIsDirty(false);
         setSaveStatus("Tipografi & Warna Disimpan");
         setTimeout(() => setSaveStatus(null), 4000);
       }
@@ -176,7 +301,7 @@ export default function EditorClient({
         key={editorKey}
         config={puckConfig}
         data={dataState}
-        onChange={(data) => setDataState(data as InvitationData)}
+        onChange={handlePuckChange}
         onPublish={handlePublish}
         headerTitle={invitationTitle}
         headerPath={`/editor/${invitationId}`}
@@ -205,20 +330,51 @@ export default function EditorClient({
           },
           headerActions: ({ children }) => (
             <div className="flex items-center gap-2">
-              {saveStatus && (
-                <span className="flex items-center gap-1 text-xs text-emerald-700 font-medium px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200/80">
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  {saveStatus}
-                </span>
-              )}
-              {isSaving && (
-                <span className="flex items-center gap-1 text-xs text-stone-600 font-medium px-2 py-1">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Menyimpan...
-                </span>
-              )}
+              {/* Undo / Redo Actions */}
+              <div className="flex items-center bg-stone-100/90 rounded-md p-0.5 border border-stone-200/80 mr-1">
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  className="p-1.5 rounded text-stone-600 hover:text-stone-900 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRedo}
+                  disabled={!canRedo}
+                  className="p-1.5 rounded text-stone-600 hover:text-stone-900 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-              {/* Quick Tools Dropdown (Compact Header Access) */}
+              {/* Status Indicator */}
+              <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium px-2 py-1">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isSaving
+                      ? "bg-amber-500 animate-pulse"
+                      : isDirty
+                      ? "bg-amber-400"
+                      : "bg-emerald-500"
+                  }`}
+                />
+                <span className="hidden sm:inline">
+                  {isSaving
+                    ? "Menyimpan..."
+                    : saveStatus
+                    ? saveStatus
+                    : isDirty
+                    ? "Belum tersimpan"
+                    : "Draft aman"}
+                </span>
+              </div>
+
+              {/* Quick Tools Dropdown */}
               <div className="relative">
                 <button
                   type="button"
@@ -233,7 +389,7 @@ export default function EditorClient({
 
                 {isQuickMenuOpen && (
                   <div
-                    className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-xl shadow-xl border border-stone-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-100"
+                    className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-stone-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-100"
                     onMouseLeave={() => setIsQuickMenuOpen(false)}
                   >
                     <button
@@ -280,9 +436,32 @@ export default function EditorClient({
                       <BarChart3 className="w-4 h-4 text-violet-600" />
                       <span>Rekap RSVP</span>
                     </button>
+                    <div className="h-px bg-stone-100 my-1" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShareModalOpen(true);
+                        setIsQuickMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-700 hover:bg-rose-50 text-left transition-colors font-medium"
+                    >
+                      <Share2 className="w-4 h-4 text-rose-600" />
+                      <span>Bagikan Undangan</span>
+                    </button>
                   </div>
                 )}
               </div>
+
+              {/* Share Button (Direct Header Access) */}
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-200 bg-rose-50/70 text-rose-700 text-xs font-medium hover:bg-rose-100 transition-all shadow-xs"
+                title="Bagikan Undangan (Link, QR Code, WA)"
+              >
+                <Share2 className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden sm:inline">Bagikan</span>
+              </button>
 
               {/* Dashboard Link */}
               <Link
@@ -318,7 +497,9 @@ export default function EditorClient({
         onOpenAudio={() => setIsAudioModalOpen(true)}
         onOpenGuest={() => setIsGuestModalOpen(true)}
         onOpenRSVP={() => setIsRSVPModalOpen(true)}
+        onOpenShare={() => setIsShareModalOpen(true)}
         hasAudio={Boolean(audioUrl)}
+        newRsvpCount={newRsvpCount}
       />
 
       {/* Typography & Color Studio Modal */}
@@ -355,6 +536,16 @@ export default function EditorClient({
         onClose={() => setIsRSVPModalOpen(false)}
         invitationId={invitationId}
         slug={previewSlug}
+        onStatsUpdate={(stats) => setNewRsvpCount(stats.recentCount)}
+      />
+
+      {/* Share Modal (QR, Link, WhatsApp, Social) */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        slug={previewSlug}
+        groomName={groomName}
+        brideName={brideName}
       />
     </div>
   );

@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2 } from "@/lib/r2";
+import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting: max 10 uploads per minute per client
+    const clientKey = getClientKey(req.headers);
+    const rateCheck = checkRateLimit(`upload:${clientKey}`, {
+      maxTokens: 10,
+      refillIntervalMs: 60_000,
+      refillAmount: 10,
+    });
+
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Terlalu banyak upload. Coba lagi dalam ${Math.ceil(
+            (rateCheck.retryAfterMs || 60_000) / 1000
+          )} detik.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

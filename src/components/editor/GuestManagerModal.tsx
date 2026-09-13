@@ -223,6 +223,14 @@ export default function GuestManagerModal({
     window.open(url, "_blank");
   };
 
+  // WhatsApp Blast: Send next unsent guest and mark as sent
+  const handleSendNextUnsent = () => {
+    const unsent = guests.find((g) => !g.isSent);
+    if (!unsent) return;
+    handleOpenWhatsApp(unsent.name, unsent.phone);
+    handleToggleSent(unsent.id, false);
+  };
+
   // Export CSV
   const handleExportCSV = () => {
     if (guests.length === 0) return;
@@ -362,6 +370,19 @@ export default function GuestManagerModal({
                 <span className="text-xs text-stone-500">
                   Terkirim: <strong className="text-stone-900">{sentCount}</strong> / {guests.length}
                 </span>
+
+                {guests.length - sentCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleSendNextUnsent}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                    title="Buka WA untuk tamu berikutnya yang belum terkirim dan tandai terkirim"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Kirim WA ({guests.length - sentCount} tersisa)
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleExportCSV}

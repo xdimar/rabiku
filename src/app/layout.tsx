@@ -92,7 +92,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-stone-50 text-stone-900 font-sans">
+      <body className="min-h-full flex flex-col bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors">
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

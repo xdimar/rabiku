@@ -28,39 +28,39 @@ export default async function HomePage() {
   const session = await getSession();
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 selection:bg-amber-200 selection:text-stone-900 overflow-x-hidden">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 selection:bg-amber-200 selection:text-stone-900 overflow-x-hidden transition-colors">
       {/* ─── 1. Navigation Bar (Glassmorphism) ─── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-stone-50/80 backdrop-blur-xl border-b border-stone-200/70 transition-all">
+      <nav className="fixed top-0 inset-x-0 z-50 bg-stone-50/80 dark:bg-stone-950/80 backdrop-blur-xl border-b border-stone-200/70 dark:border-stone-800 transition-all">
         <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-full bg-stone-900 text-amber-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-full bg-stone-900 dark:bg-amber-500/20 text-amber-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
               <Heart className="w-4 h-4 fill-amber-400" />
             </div>
             <div>
-              <span className="font-serif text-xl font-bold tracking-tight text-stone-900">
+              <span className="font-serif text-xl font-bold tracking-tight text-stone-900 dark:text-white">
                 Rabiku
               </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-stone-200/80 text-stone-700">
+              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
                 Studio Pro
               </span>
             </div>
           </Link>
 
           {/* Nav Links (Desktop) */}
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600">
-            <a href="#cara-kerja" className="hover:text-stone-900 transition-colors">
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600 dark:text-stone-300">
+            <a href="#cara-kerja" className="hover:text-stone-900 dark:hover:text-white transition-colors">
               Cara Kerja
             </a>
-            <a href="#whatsapp-simulator" className="hover:text-stone-900 transition-colors">
+            <a href="#whatsapp-simulator" className="hover:text-stone-900 dark:hover:text-white transition-colors">
               Simulasi WhatsApp
             </a>
-            <a href="#fitur" className="hover:text-stone-900 transition-colors">
+            <a href="#fitur" className="hover:text-stone-900 dark:hover:text-white transition-colors">
               Fitur
             </a>
-            <a href="#template" className="hover:text-stone-900 transition-colors">
+            <a href="#template" className="hover:text-stone-900 dark:hover:text-white transition-colors">
               Template
             </a>
-            <a href="#testimoni" className="hover:text-stone-900 transition-colors">
+            <a href="#testimoni" className="hover:text-stone-900 dark:hover:text-white transition-colors">
               Testimoni
             </a>
           </div>

@@ -13,6 +13,7 @@ import {
   GripVertical,
   ArrowLeftRight,
   RotateCcw,
+  Share2,
 } from "lucide-react";
 
 interface StudioSidebarDockProps {
@@ -20,7 +21,9 @@ interface StudioSidebarDockProps {
   onOpenAudio: () => void;
   onOpenGuest: () => void;
   onOpenRSVP: () => void;
+  onOpenShare?: () => void;
   hasAudio?: boolean;
+  newRsvpCount?: number;
 }
 
 export default function StudioSidebarDock({
@@ -28,7 +31,9 @@ export default function StudioSidebarDock({
   onOpenAudio,
   onOpenGuest,
   onOpenRSVP,
+  onOpenShare,
   hasAudio = false,
+  newRsvpCount = 0,
 }: StudioSidebarDockProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [dockSide, setDockSide] = useState<"right" | "left">("right");
@@ -69,8 +74,17 @@ export default function StudioSidebarDock({
       sublabel: "Kehadiran & Buku Tamu",
       icon: BarChart3,
       onClick: onOpenRSVP,
-      badge: null,
+      badge: newRsvpCount > 0 ? `${newRsvpCount} Baru` : null,
       accentColor: "text-violet-700 bg-violet-50 border-violet-200",
+    },
+    {
+      id: "share",
+      label: "Bagikan Undangan",
+      sublabel: "Link, QR & Multiplatform",
+      icon: Share2,
+      onClick: onOpenShare || (() => {}),
+      badge: null,
+      accentColor: "text-rose-700 bg-rose-50 border-rose-200",
     },
   ];
 
@@ -197,8 +211,13 @@ export default function StudioSidebarDock({
                       : "justify-center p-2.5 hover:bg-stone-100 text-stone-700"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-stone-100 border border-stone-200/70 flex items-center justify-center shrink-0 group-hover:bg-stone-900 group-hover:text-white group-hover:border-stone-900 transition-all shadow-2xs">
-                    <IconComponent className="w-4 h-4" />
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-lg bg-stone-100 border border-stone-200/70 flex items-center justify-center shrink-0 group-hover:bg-stone-900 group-hover:text-white group-hover:border-stone-900 transition-all shadow-2xs">
+                      <IconComponent className="w-4 h-4" />
+                    </div>
+                    {!isExpanded && tool.badge && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white animate-pulse" />
+                    )}
                   </div>
 
                   {isExpanded && (

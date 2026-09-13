@@ -42,6 +42,7 @@ model Invitation {
   updatedAt   DateTime         @updatedAt
   guestbook   GuestbookEntry[]
   guests      Guest[]
+  views       InvitationView[]
 
   @@index([slug])
   @@index([userId])
@@ -70,4 +71,17 @@ model Guest {
   createdAt    DateTime   @default(now())
 
   @@index([invitationId])
+}
+
+model InvitationView {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  viewerName   String?
+  viewedAt     DateTime   @default(now())
+  userAgent    String?
+  referrer     String?
+
+  @@index([invitationId])
+  @@index([viewedAt])
 }

@@ -39,6 +39,34 @@ const fadeInUp = {
   transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 };
 
+const slideInLeft = {
+  initial: { opacity: 0, x: -40 },
+  whileInView: { opacity: 1, x: 0 },
+  viewport: { once: true, margin: "-60px" as const },
+  transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
+const slideInRight = {
+  initial: { opacity: 0, x: 40 },
+  whileInView: { opacity: 1, x: 0 },
+  viewport: { once: true, margin: "-60px" as const },
+  transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.9 },
+  whileInView: { opacity: 1, scale: 1 },
+  viewport: { once: true, margin: "-50px" as const },
+  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
+const blurFade = {
+  initial: { opacity: 0, filter: "blur(6px)", y: 15 },
+  whileInView: { opacity: 1, filter: "blur(0px)", y: 0 },
+  viewport: { once: true, margin: "-60px" as const },
+  transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
 /* ─── Type Definitions ─── */
 
 export type RootProps = {
@@ -303,6 +331,7 @@ function PersonCard({
   showParentNames = true,
   showInstagram = true,
   showRoleLabels = true,
+  slideDirection,
 }: {
   data: PersonData;
   label: string;
@@ -310,9 +339,17 @@ function PersonCard({
   showParentNames?: boolean;
   showInstagram?: boolean;
   showRoleLabels?: boolean;
+  slideDirection?: "left" | "right";
 }) {
+  const anim =
+    slideDirection === "left"
+      ? slideInLeft
+      : slideDirection === "right"
+      ? slideInRight
+      : fadeInUp;
+
   return (
-    <motion.div {...fadeInUp} className="flex flex-col items-center text-center">
+    <motion.div {...anim} className="flex flex-col items-center text-center">
       {showPhotos &&
         (data.photoUrl ? (
           <div className="w-36 h-36 rounded-full overflow-hidden border-2 border-stone-200 mb-5 shadow-sm">
@@ -387,6 +424,7 @@ function CoupleProfileRender({
             showParentNames={showParentNames}
             showInstagram={showInstagram}
             showRoleLabels={showRoleLabels}
+            slideDirection="left"
           />
           {showHeartDivider && (
             <div className="flex items-center justify-center">
@@ -400,6 +438,7 @@ function CoupleProfileRender({
             showParentNames={showParentNames}
             showInstagram={showInstagram}
             showRoleLabels={showRoleLabels}
+            slideDirection="right"
           />
         </div>
       </div>
@@ -1296,7 +1335,7 @@ function WeddingQuoteRender({
 }: WeddingQuoteProps) {
   return (
     <motion.section
-      {...fadeInUp}
+      {...blurFade}
       className="py-16 sm:py-24 px-6 bg-stone-50/50 flex flex-col items-center justify-center text-center relative overflow-hidden"
     >
       <div

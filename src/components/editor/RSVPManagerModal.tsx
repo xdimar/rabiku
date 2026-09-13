@@ -26,6 +26,7 @@ interface RSVPManagerModalProps {
   onClose: () => void;
   invitationId: string;
   slug: string;
+  onStatsUpdate?: (stats: { total: number; recentCount: number }) => void;
 }
 
 export default function RSVPManagerModal({
@@ -33,11 +34,13 @@ export default function RSVPManagerModal({
   onClose,
   invitationId,
   slug,
+  onStatsUpdate,
 }: RSVPManagerModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [entries, setEntries] = useState<GuestbookItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [now, setNow] = useState(0);
 
   const loadData = useCallback(async () => {
     if (!invitationId) return;
@@ -45,18 +48,25 @@ export default function RSVPManagerModal({
     try {
       const summary = await getRSVPSummary(invitationId);
       setEntries((summary.entries as GuestbookItem[]) || []);
+      setNow(Date.now());
+      if (onStatsUpdate) {
+        onStatsUpdate({
+          total: summary.total || 0,
+          recentCount: summary.recentCount || 0,
+        });
+      }
     } catch (err) {
       console.error("Failed to load RSVP summary:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [invitationId]);
+  }, [invitationId, onStatsUpdate]);
 
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
         loadData();
-      }, 0);
+      }, 50);
       return () => clearTimeout(timer);
     }
   }, [isOpen, loadData]);
@@ -74,6 +84,18 @@ export default function RSVPManagerModal({
     () => entries.filter((e) => e.attendanceStatus === "TENTATIVE").length,
     [entries]
   );
+
+  const totalEntries = entries.length;
+  const attendingPct = totalEntries > 0 ? Math.round((attendingCount / totalEntries) * 100) : 0;
+  const notAttendingPct = totalEntries > 0 ? Math.round((notAttendingCount / totalEntries) * 100) : 0;
+  const tentativePct = totalEntries > 0 ? Math.max(0, 100 - attendingPct - notAttendingPct) : 0;
+
+  const donutGradient = useMemo(() => {
+    if (totalEntries === 0) return "conic-gradient(#e7e5e4 0deg 360deg)";
+    const p1 = attendingPct;
+    const p2 = p1 + notAttendingPct;
+    return `conic-gradient(#10b981 0% ${p1}%, #ef4444 ${p1}% ${p2}%, #f59e0b ${p2}% 100%)`;
+  }, [totalEntries, attendingPct, notAttendingPct]);
 
   // Filtered entries
   const filteredEntries = useMemo(() => {
@@ -163,6 +185,74 @@ export default function RSVPManagerModal({
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Chart & Stat Cards Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-stone-50/70 border border-stone-200">
+            {/* Donut Chart Visualizer */}
+            <div className="flex items-center gap-4 justify-center md:justify-start">
+              <div
+                className="w-24 h-24 rounded-full relative flex items-center justify-center shrink-0 shadow-inner"
+                style={{ background: donutGradient }}
+              >
+                <div className="w-16 h-16 bg-white rounded-full flex flex-col items-center justify-center shadow-xs">
+                  <span className="font-serif text-lg font-bold text-stone-900 leading-none">
+                    {totalEntries}
+                  </span>
+                  <span className="text-[9px] text-stone-400 mt-0.5">Total</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-stone-600">Hadir:</span>
+                  <strong className="text-emerald-700">{attendingCount} ({attendingPct}%)</strong>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
+                  <span className="text-stone-600">Absen:</span>
+                  <strong className="text-red-700">{notAttendingCount} ({notAttendingPct}%)</strong>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-stone-600">Ragu:</span>
+                  <strong className="text-amber-700">{tentativeCount} ({tentativePct}%)</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Proportion Progress Bar */}
+            <div className="md:col-span-2 flex flex-col justify-center gap-2">
+              <div className="flex justify-between items-center text-xs text-stone-600">
+                <span className="font-medium">Komposisi Respon Kehadiran</span>
+                <span className="text-[11px] text-stone-400">
+                  {totalEntries > 0 ? `${totalEntries} konfirmasi terkumpul` : "Belum ada respon"}
+                </span>
+              </div>
+              <div className="w-full h-3 rounded-full overflow-hidden bg-stone-200 flex">
+                <div
+                  className="h-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${attendingPct}%` }}
+                  title={`Hadir: ${attendingPct}%`}
+                />
+                <div
+                  className="h-full bg-red-500 transition-all duration-500"
+                  style={{ width: `${notAttendingPct}%` }}
+                  title={`Tidak Hadir: ${notAttendingPct}%`}
+                />
+                <div
+                  className="h-full bg-amber-500 transition-all duration-500"
+                  style={{ width: `${tentativePct}%` }}
+                  title={`Ragu-ragu: ${tentativePct}%`}
+                />
+              </div>
+              <p className="text-[11px] text-stone-500">
+                {attendingCount > 0
+                  ? `Sebanyak ${attendingCount} tamu sudah menyatakan akan hadir merayakan bersama!`
+                  : "Menunggu respon pertama dari tamu undangan."}
+              </p>
+            </div>
+          </div>
+
           {/* Summary Stat Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
@@ -302,6 +392,10 @@ export default function RSVPManagerModal({
                     );
                   }
 
+                  const isNew =
+                    now - new Date(entry.createdAt).getTime() <
+                    24 * 60 * 60 * 1000;
+
                   return (
                     <div key={entry.id} className="p-4 hover:bg-stone-50/70 transition-colors space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
@@ -310,6 +404,11 @@ export default function RSVPManagerModal({
                             {entry.guestName}
                           </p>
                           {badge}
+                          {isNew && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                              Baru
+                            </span>
+                          )}
                         </div>
                         <span className="text-[10px] text-stone-400">
                           {new Date(entry.createdAt).toLocaleDateString("id-ID", {

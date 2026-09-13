@@ -3,6 +3,13 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { THEME_PRESETS, defaultThemeConfig } from "@/config/theme.config";
+import { WEDDING_TEMPLATES } from "@/config/templates";
+import {
+  createInvitationSchema,
+  guestbookEntrySchema,
+  sanitizeLayoutData,
+  sanitizeString,
+} from "@/lib/validation";
 
 export type AttendanceStatus = "ATTENDING" | "NOT_ATTENDING" | "TENTATIVE";
 
@@ -26,10 +33,11 @@ export async function saveInvitationLayout(
       const user = await ensureDemoUser();
       userId = user?.id ?? "demo-user";
     }
-    const layoutStr =
+    const rawLayoutStr =
       typeof data.layoutData === "string"
         ? data.layoutData
         : JSON.stringify(data.layoutData);
+    const layoutStr = sanitizeLayoutData(rawLayoutStr);
 
     const invitation = await prisma.invitation.upsert({
       where: { id },
@@ -191,6 +199,13 @@ export async function createInvitation(data: {
   presetId?: string;
 }) {
   try {
+    // Validate input with Zod
+    const validation = createInvitationSchema.safeParse(data);
+    if (!validation.success) {
+      const firstError = validation.error.issues[0]?.message || "Input tidak valid";
+      return { success: false, error: firstError };
+    }
+
     let finalUserId = data.userId;
     if (!finalUserId) {
       const session = await getSession();
@@ -217,8 +232,12 @@ export async function createInvitation(data: {
         },
       };
     } else {
-      const selectedPreset =
-        THEME_PRESETS.find((p) => p.id === data.presetId) || THEME_PRESETS[0];
+      const templateMatch = WEDDING_TEMPLATES.find((t) => t.id === data.presetId);
+      if (templateMatch) {
+        layoutDataObj = templateMatch.generateLayout(groom, bride);
+      } else {
+        const selectedPreset =
+          THEME_PRESETS.find((p) => p.id === data.presetId) || THEME_PRESETS[0];
 
       layoutDataObj = {
         content: [
@@ -402,6 +421,7 @@ export async function createInvitation(data: {
           },
         },
       };
+      }
     }
 
     const invitation = await prisma.invitation.create({
@@ -430,12 +450,22 @@ export async function submitGuestbookEntry(data: {
   message?: string;
 }) {
   try {
+    // Validate input with Zod
+    const validation = guestbookEntrySchema.safeParse(data);
+    if (!validation.success) {
+      const firstError = validation.error.issues[0]?.message || "Input tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const sanitizedName = sanitizeString(data.guestName.trim());
+    const sanitizedMessage = data.message ? sanitizeString(data.message.trim()) : null;
+
     const entry = await prisma.guestbookEntry.create({
       data: {
         invitationId: data.invitationId,
-        guestName: data.guestName,
+        guestName: sanitizedName,
         attendanceStatus: data.attendanceStatus,
-        message: data.message ?? null,
+        message: sanitizedMessage,
       },
     });
     return { success: true, entry };
@@ -544,12 +574,15 @@ export async function getRSVPSummary(invitationId: string) {
     const attending = entries.filter((e) => e.attendanceStatus === "ATTENDING").length;
     const notAttending = entries.filter((e) => e.attendanceStatus === "NOT_ATTENDING").length;
     const tentative = entries.filter((e) => e.attendanceStatus === "TENTATIVE").length;
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentCount = entries.filter((e) => new Date(e.createdAt) > oneDayAgo).length;
 
     return {
       total: entries.length,
       attending,
       notAttending,
       tentative,
+      recentCount,
       entries,
     };
   } catch (error) {
@@ -559,6 +592,7 @@ export async function getRSVPSummary(invitationId: string) {
       attending: 0,
       notAttending: 0,
       tentative: 0,
+      recentCount: 0,
       entries: [],
     };
   }
